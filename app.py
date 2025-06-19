@@ -6,14 +6,12 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os
 import json
 
-# Load model and tokenizer
 model = tf.keras.models.load_model("lstm_next_word.keras")
 with open("tokenizer.pkl", "rb") as f:
     tokenizer = pickle.load(f)
 
 max_len = model.input_shape[1]
 
-# Generate next words
 def generate_text(seed_text, next_words=5):
     result = seed_text
     for _ in range(next_words):
@@ -25,7 +23,6 @@ def generate_text(seed_text, next_words=5):
         result += ' ' + next_word
     return result
 
-# Load or initialize notes
 def load_notes():
     if os.path.exists("notes.json"):
         with open("notes.json", "r") as f:
@@ -38,49 +35,62 @@ def save_notes(notes):
 
 notes = load_notes()
 
-st.title("🧠 ML Notes Assistant")
+st.markdown(
+    "<h1 style='text-align: center; color: #FAD02E;'>🧠 ML Notes Assistant</h1>",
+    unsafe_allow_html=True
+)
 
-menu = st.sidebar.selectbox("Menu", ["Create Note", "View/Edit Notes"])
+menu = st.sidebar.selectbox("📁 Menu", ["Create Note", "View/Edit Notes"])
 
 if menu == "Create Note":
-    topic = st.text_input("Enter Note Title")
-    seed = st.text_area("Start typing your notes...", height=150)
-    next_words = st.slider("How many words to predict?", 1, 20, 5)
+    with st.container():
+        st.subheader("✍️ Create a New Note")
 
-    if st.button("Suggest Next Words"):
-        completed = generate_text(seed, next_words)
-        st.success("Suggested:")
-        st.write(completed)
+        topic = st.text_input("📌 Note Title", placeholder="e.g., Introduction to Neural Networks")
+        seed = st.text_area("📝 Start typing your notes...", height=180, placeholder="Begin your note here...")
+        next_words = st.slider("🔮 How many words to predict?", 1, 20, 5)
 
-    if st.button("Save Note"):
-        if topic and seed:
-            notes[topic] = seed
-            save_notes(notes)
-            st.success("Note saved successfully!")
-        else:
-            st.warning("Title and content cannot be empty!")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("✨ Suggest Next Words"):
+                completed = generate_text(seed, next_words)
+                st.success("Here’s a suggestion:")
+                st.markdown(f"<div style='background-color:#252525;padding:10px;border-radius:10px;color:white'><b>{completed}</b></div>", unsafe_allow_html=True)
+
+        with col2:
+            if st.button("💾 Save Note"):
+                if topic and seed:
+                    notes[topic] = seed
+                    save_notes(notes)
+                    st.success("✅ Note saved successfully!")
+                else:
+                    st.warning("⚠️ Please enter both a title and content!")
 
 elif menu == "View/Edit Notes":
+    st.subheader("🗂️ View or Edit Your Notes")
     if notes:
-        selected = st.selectbox("Select a note", list(notes.keys()))
-        edited = st.text_area("Edit your note:", value=notes[selected], height=200)
+        selected = st.selectbox("📑 Select a note", list(notes.keys()))
+        edited = st.text_area("✏️ Edit Note:", value=notes[selected], height=200)
 
-        if st.button("Update Note"):
-            notes[selected] = edited
-            save_notes(notes)
-            st.success("Note updated!")
-
-        if st.button("Rename Note"):
-            new_name = st.text_input("New title:")
-            if new_name and new_name != selected:
-                notes[new_name] = notes.pop(selected)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("💾 Update Note"):
+                notes[selected] = edited
                 save_notes(notes)
-                st.success("Renamed successfully!")
+                st.success("✅ Note updated!")
 
-        if st.button("Delete Note"):
-            del notes[selected]
-            save_notes(notes)
-            st.warning("Note deleted.")
+        with col2:
+            new_name = st.text_input("📝 Rename Note", placeholder="Enter new title...")
+            if st.button("🔁 Rename"):
+                if new_name and new_name != selected:
+                    notes[new_name] = notes.pop(selected)
+                    save_notes(notes)
+                    st.success("✅ Renamed successfully!")
+
+        with col3:
+            if st.button("🗑️ Delete Note"):
+                del notes[selected]
+                save_notes(notes)
+                st.warning("🗑️ Note deleted.")
     else:
-        st.info("No notes saved yet.")
-
+        st.info("📭 No notes available. Create one first!")
