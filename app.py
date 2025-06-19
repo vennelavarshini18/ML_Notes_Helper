@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import pickle
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from fpdf import FPDF
 import os
 import json
 
@@ -32,6 +33,17 @@ def load_notes():
 def save_notes(notes):
     with open("notes.json", "w") as f:
         json.dump(notes, f, indent=2)
+
+def export_to_txt(title, content):
+    with open(f"{title}.txt", "w", encoding="utf-8") as f:
+        f.write(f"{title}\n\n{content}")
+
+def export_to_pdf(title, content):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, f"{title}\n\n{content}")
+    pdf.output(f"{title}.pdf")
 
 notes = load_notes()
 
@@ -69,28 +81,45 @@ if menu == "Create Note":
 elif menu == "View/Edit Notes":
     st.subheader("🗂️ View or Edit Your Notes")
     if notes:
-        selected = st.selectbox("📑 Select a note", list(notes.keys()))
-        edited = st.text_area("✏️ Edit Note:", value=notes[selected], height=200)
+        search = st.text_input("🔍 Search Notes").lower()
+        filtered_titles = [k for k in notes if search in k.lower()]
+        if filtered_titles:
+            selected = st.selectbox("📑 Select a note", filtered_titles)
+            edited = st.text_area("✏️ Edit Note:", value=notes[selected], height=200)
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("💾 Update Note"):
-                notes[selected] = edited
-                save_notes(notes)
-                st.success("✅ Note updated!")
-
-        with col2:
-            new_name = st.text_input("📝 Rename Note", placeholder="Enter new title...")
-            if st.button("🔁 Rename"):
-                if new_name and new_name != selected:
-                    notes[new_name] = notes.pop(selected)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("💾 Update Note"):
+                    notes[selected] = edited
                     save_notes(notes)
-                    st.success("✅ Renamed successfully!")
+                    st.success("✅ Note updated!")
 
-        with col3:
-            if st.button("🗑️ Delete Note"):
-                del notes[selected]
-                save_notes(notes)
-                st.warning("🗑️ Note deleted.")
+            with col2:
+                new_name = st.text_input("📝 Rename Note", placeholder="Enter new title...")
+                if st.button("🔁 Rename"):
+                    if new_name and new_name != selected:
+                        notes[new_name] = notes.pop(selected)
+                        save_notes(notes)
+                        st.success("✅ Renamed successfully!")
+
+            with col3:
+                if st.button("🗑️ Delete Note"):
+                    del notes[selected]
+                    save_notes(notes)
+                    st.warning("🗑️ Note deleted.")
+
+            st.markdown("---")
+            col4, col5 = st.columns(2)
+            with col4:
+                if st.button("📄 Export to .txt"):
+                    export_to_txt(selected, notes[selected])
+                    st.success(f"Exported {selected}.txt")
+
+            with col5:
+                if st.button("📄 Export to .pdf"):
+                    export_to_pdf(selected, notes[selected])
+                    st.success(f"Exported {selected}.pdf")
+        else:
+            st.info("🔎 No matching notes found.")
     else:
         st.info("📭 No notes available. Create one first!")

@@ -1,0 +1,3 @@
+Linear Regression
+
+Linear Regression is a tabular representation of of the most commonly used optimization that random model on the objective function and chooses hyperparameters on the expected improvement.
