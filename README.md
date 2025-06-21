@@ -1,6 +1,6 @@
 # 🧠 ML Notes Assistant
 
-A Streamlit application that helps you write and save notes, and even suggests the next few words using an Bidirectional LSTM language model!
+A Streamlit application that uses an LSTM language model to suggest the next few words intelligently and also helps you write, save, and even export notes!
 
 ## 🚀 Features
 
