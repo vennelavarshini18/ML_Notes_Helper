@@ -7,8 +7,8 @@ from fpdf import FPDF
 import os
 import json
 
-model = tf.keras.models.load_model("lstm_next_word.keras")
-with open("tokenizer.pkl", "rb") as f:
+model = tf.keras.models.load_model("lstm_next_word2.keras")
+with open("tokenizer2.pkl", "rb") as f:
     tokenizer = pickle.load(f)
 
 max_len = model.input_shape[1]
