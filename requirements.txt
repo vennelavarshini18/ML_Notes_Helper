@@ -1,8 +1,9 @@
 streamlit
-tensorflow-cpu
+tensorflow
 librosa
 scikit-learn
 matplotlib
 numpy
 pandas
 seaborn
+fpdf
